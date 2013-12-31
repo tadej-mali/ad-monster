@@ -1,0 +1,23 @@
+<div class="headerRow">
+    <div class="page-header">	  
+      <a class="btn pull-left" style="margin-top:4px;" href="#">
+        <span class="glyphicon glyphicon-chevron-left"></span>
+      </a>
+      <h1 class="text-center"><%=title%></h1>
+    </div>
+</div>
+<div>
+  <%= _.nl2br(description) %>
+</div>
+<br/>
+<div class="list-group">
+<%_.each(advertisements, function(item, index, list){ %>
+  <div class="list-group-item">
+  <a href="<%=item.url%>" target="_blank">
+  <span class="badge pull-right">Check it out</span>
+  <h4 class="list-group-item-heading"><%=item.title%></h4>
+  <%= _.nl2br(item.description) %>
+  </a>
+  </div>
+<% }); %>
+</div>
