@@ -1,6 +1,6 @@
 directory.Folder = Backbone.Model.extend({
 
-    urlRoot : "http://www.advertising.loc/api/directory/",
+    urlRoot : "/api/directory/",
 
     initialize:function () {
         this.title = "";
@@ -10,7 +10,7 @@ directory.Folder = Backbone.Model.extend({
 
 directory.FolderCollection = Backbone.Collection.extend({
 
-    url : "http://www.advertising.loc/api/directory",
+    url : "/api/directory",
 
     model: directory.Folder
 });

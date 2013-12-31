@@ -1,14 +1,10 @@
 var directory = {
 
-    views: {},
-
-    models: {},
-
     loadTemplates: function(views, callback) {
 
         var deferreds = [];
 
-        $.each(views, function(index, view) {
+        $.each(views, function (index, view) {
             if (directory[view]) {
                 deferreds.push($.get('templates/' + view + '.html', function(data) {
                     directory[view].prototype.template = _.template(data);
@@ -19,8 +15,10 @@ var directory = {
         });
 
         $.when.apply(null, deferreds).done(callback);
-    }
+    },
 
+    // This is the endpoint of service api site
+    siteUrl: "http://192.168.0.14"
 };
 
 directory.Router = Backbone.Router.extend({
@@ -38,7 +36,7 @@ directory.Router = Backbone.Router.extend({
         var self = this;
         var dir = new directory.FolderCollection();
         dir.fetch({
-            success: function (data) {
+            success: function () {
                 directory.homeView = new directory.HomeView({model: dir});
                 directory.homeView.render();
                 self.$content.html(directory.homeView.el);
@@ -58,15 +56,21 @@ directory.Router = Backbone.Router.extend({
 });
 
 _.mixin({
-  nl2br: function (str, is_xhtml) {
+  nl2br: function (str, isXhtml) {
     if (!str) return str;
-    var breakTag = (is_xhtml || typeof is_xhtml === 'undefined') ? '<br />' : '<br>';
+    var breakTag = (isXhtml || typeof isXhtml === 'undefined') ? '<br />' : '<br>';
     return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1'+ breakTag +'$2');
   }
 });
 
+Backbone.ajax = function (options) {
+    options.contentType = "application/json; charset=utf-8";
+    options.url = directory.siteUrl + options.url;
+    return $.ajax(options);
+};
+
 $(document).on("ready", function () {
-    
+
     directory.loadTemplates(["HomeView", "DirectoryListView", "DirectoryListItemView", "DirectoryDetailsView"],
         function () {
             directory.router = new directory.Router();
