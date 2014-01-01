@@ -125,6 +125,8 @@
   <ItemGroup>
     <Compile Include="Controllers\Api\DirectoryController.cs" />
     <Compile Include="Data\AdvertisingContext.cs" />
+    <Compile Include="Data\EntityExtensions.cs" />
+    <Compile Include="Data\IDbContext.cs" />
     <Compile Include="Data\IRowVersion.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>

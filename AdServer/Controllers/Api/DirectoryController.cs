@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Web.Http;
 using AdServer.Data;
@@ -119,10 +118,13 @@ namespace AdServer.Controllers.Api
             return Directories;
             */
 
-            var dirService = new DirectoryService();
-            var dir = dirService.GetDirectoryList();
+            using (var dbContext = new AdvertisingContext())
+            {
+                var dirService = new DirectoryService(new DbContextProxy<AdvertisingContext>(dbContext));
+                var dir = dirService.GetDirectoryList();
 
-            return dir.Select(x => x.ToDescription()).ToArray();
+                return dir.Select(x => x.ToDescription()).ToArray();
+            }
         }
 
         // GET api/directory/5
@@ -138,8 +140,7 @@ namespace AdServer.Controllers.Api
 
             using (var dbContext = new AdvertisingContext())
             {
-                dbContext.Database.Log = s => Debug.Write(s);
-                var dirService = new DirectoryService(dbContext);
+                var dirService = new DirectoryService(new DbContextProxy<AdvertisingContext>(dbContext));
                 var theDirectory = dirService.GetDirectory(id);
 
                 if (theDirectory == null) { return null; }

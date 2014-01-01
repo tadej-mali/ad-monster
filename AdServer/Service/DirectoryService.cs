@@ -18,16 +18,11 @@ namespace AdServer.Service
 
     public class DirectoryService
     {
-        private AdvertisingContext dbContext;
+        private IDbContext DbContext { get; set; }
 
-        public DirectoryService(AdvertisingContext dbContext = null)
+        public DirectoryService(IDbContext dbContext)
         {
-            this.dbContext = dbContext;
-        }
-
-        private AdvertisingContext DbContext
-        {
-            get { return this.dbContext ?? (this.dbContext = new AdvertisingContext()); }
+            this.DbContext = dbContext;
         }
 
         public void SaveDirectory(Directory dir)
@@ -43,9 +38,9 @@ namespace AdServer.Service
 
         public Directory GetDirectory(DirectoryQuery q)
         {
-            if (!q.WithCount) { return this.DbContext.Set<Directory>().Find(q.Id); }
+            if (!q.WithCount) { return this.DbContext.GetQuery<Directory>().SingleOrDefault(x => x.Id == q.Id); }
 
-            var fromDb = this.DbContext.Set<Directory>()
+            var fromDb = this.DbContext.GetQuery<Directory>()
                 .Where(x => x.Id == q.Id)
                 .Select(x => new { Dir = x, Count = x.Advertisements.Count() })
                 .SingleOrDefault();
@@ -60,13 +55,13 @@ namespace AdServer.Service
             this.DbContext.EnforceAttach(dir);
             dir.Advertisements.Fetch();
 
-            this.DbContext.Directories.Remove(dir);
+            this.DbContext.Remove(dir);
             this.DbContext.SaveChanges();
         }
 
         public IList<Directory> GetDirectoryList()
         {
-            var fromDb = this.DbContext.Set<Directory>().Select(x => new {Dir = x, Count = x.Advertisements.Count()}).ToList();
+            var fromDb = this.DbContext.GetQuery<Directory>().Select(x => new { Dir = x, Count = x.Advertisements.Count() }).ToList();
 
             return fromDb.Select(x =>
             {

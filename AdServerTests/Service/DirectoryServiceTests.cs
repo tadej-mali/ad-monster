@@ -59,6 +59,12 @@ namespace AdServerTests.Service
             get { return this.rawDirectories[5]; }
         }
 
+        private static DirectoryService DirectoryService(AdvertisingContext dbContext)
+        {
+            var toTest = new DirectoryService(new DbContextProxy<AdvertisingContext>(dbContext));
+            return toTest;
+        }
+
         [SetUp]
         protected void SetUp()
         {
@@ -68,74 +74,88 @@ namespace AdServerTests.Service
         [Test]
         public void Load_NonExistingDirectory_ReturnNull()
         {
-            var toTest = new DirectoryService();
-
-            var dir = toTest.GetDirectory(new DirectoryQuery(-1));
-
-            Assert.IsNull(dir);
-        }
-
-        [Test]
-        public void Save_NewDirectoryNoAdvertisements_NewKeyIsAssigned([Values(false)]bool shallCommit)
-        {
-            var toTest = new DirectoryService();
-
-            using (var transaction = new TransactionScopeProxy(shallCommit))
+            using (var dbContext = new AdvertisingContext())
             {
-                var newDirectory = DirectoryWithMultilineDescription;
-                toTest.SaveDirectory(newDirectory);
-                transaction.Commit();
+                var toTest = DirectoryService(dbContext);
+                var dir = toTest.GetDirectory(new DirectoryQuery(-1));
 
-                Assert.AreNotEqual(0, newDirectory.Id);
+                Assert.IsNull(dir);
             }
         }
 
         [Test]
-        public void Save_NewDirectoryWithAdvertisements_ForeignKeyCreated([Values(false)]bool shallCommit)
+        public void Save_NewDirectoryNoAdvertisements_NewKeyIsAssigned([Values(false)] bool shallCommit)
         {
-            var toTest = new DirectoryService();
-
-            using (var transaction = new TransactionScopeProxy(shallCommit))
+            using (var dbContext = new AdvertisingContext())
             {
-                var newDirectory = DirectoryWithMultilineDescription;
-                newDirectory.Advertisements = new List<Advertisement>();
-                newDirectory.Advertisements.AddRange(CreateTestAdvertisements(newDirectory));
+                var toTest = DirectoryService(dbContext);
 
-                toTest.SaveDirectory(newDirectory);
-                transaction.Commit();
+                using (var transaction = new TransactionScopeProxy(shallCommit))
+                {
+                    var newDirectory = DirectoryWithMultilineDescription;
+                    toTest.SaveDirectory(newDirectory);
+                    transaction.Commit();
 
-                newDirectory.Advertisements.ForEach(x => Assert.AreEqual(newDirectory.Id, x.DirectoryId));
+                    Assert.AreNotEqual(0, newDirectory.Id);
+                }
+            }
+        }
+
+        [Test]
+        public void Save_NewDirectoryWithAdvertisements_ForeignKeyCreated([Values(false)] bool shallCommit)
+        {
+            using (var dbContext = new AdvertisingContext())
+            {
+                var toTest = DirectoryService(dbContext);
+
+                using (var transaction = new TransactionScopeProxy(shallCommit))
+                {
+                    var newDirectory = DirectoryWithMultilineDescription;
+                    newDirectory.Advertisements = new List<Advertisement>();
+                    newDirectory.Advertisements.AddRange(CreateTestAdvertisements(newDirectory));
+
+                    toTest.SaveDirectory(newDirectory);
+                    transaction.Commit();
+
+                    newDirectory.Advertisements.ForEach(x => Assert.AreEqual(newDirectory.Id, x.DirectoryId));
+                }
             }
         }
 
         [Test]
         public void Load_SavedDirectoryNoAdvertisements_ReturnsData([Values(true)]bool shallCleanup)
         {
-            var dbContext = new AdvertisingContext();
-            var toTest = new DirectoryService(dbContext);
-            var newDirectory = DirectoryWithMultilineDescription;
-
-            using (var transaction = new TransactionScopeProxy())
+            using (var dbContext = new AdvertisingContext())
             {
-                toTest.SaveDirectory(newDirectory);
-                transaction.Commit();
-            }
-            dbContext.Entry(newDirectory).State = EntityState.Detached;
+                var toTest = DirectoryService(dbContext);
 
-            using (var transaction = new TransactionScopeProxy())
-            {
-                var dir = toTest.GetDirectory(newDirectory.Id);
-                Assert.IsNotNull(dir);
-                Assert.AreEqual(newDirectory.Id, dir.Id);
+                var newDirectory = DirectoryWithMultilineDescription;
 
-                if (shallCleanup) { toTest.DeleteDirectory(dir); }
-                transaction.Commit();
-            }
+                using (var transaction = new TransactionScopeProxy())
+                {
+                    toTest.SaveDirectory(newDirectory);
+                    transaction.Commit();
+                }
+                dbContext.Entry(newDirectory).State = EntityState.Detached;
 
-            if (shallCleanup)
-            {
-                var thisShouldBeNull = toTest.GetDirectory(newDirectory.Id);
-                Assert.IsNull(thisShouldBeNull);
+                using (var transaction = new TransactionScopeProxy())
+                {
+                    var dir = toTest.GetDirectory(newDirectory.Id);
+                    Assert.IsNotNull(dir);
+                    Assert.AreEqual(newDirectory.Id, dir.Id);
+
+                    if (shallCleanup)
+                    {
+                        toTest.DeleteDirectory(dir);
+                    }
+                    transaction.Commit();
+                }
+
+                if (shallCleanup)
+                {
+                    var thisShouldBeNull = toTest.GetDirectory(newDirectory.Id);
+                    Assert.IsNull(thisShouldBeNull);
+                }
             }
         }
 
@@ -148,7 +168,7 @@ namespace AdServerTests.Service
             using (var dbContext = new AdvertisingContext())
             {
                 dbContext.Database.Log = Console.Write;
-                var toTest = new DirectoryService(dbContext);
+                var toTest = DirectoryService(dbContext);
                 var testDir = DirectoryWithMultilineDescription;
 
                 using (var transaction = new TransactionScopeProxy())
@@ -168,7 +188,7 @@ namespace AdServerTests.Service
             using (var dbContext = new AdvertisingContext())
             {
                 dbContext.Database.Log = Console.Write;
-                var toTest = new DirectoryService(dbContext);
+                var toTest = DirectoryService(dbContext);
 
                 using (var transaction = new TransactionScopeProxy())
                 {
@@ -192,7 +212,7 @@ namespace AdServerTests.Service
             using (var dbContext = new AdvertisingContext())
             {
                 dbContext.Database.Log = Console.Write;
-                var toTest = new DirectoryService(dbContext);
+                var toTest = DirectoryService(dbContext);
 
                 using (var transaction = new TransactionScopeProxy())
                 {
@@ -215,7 +235,7 @@ namespace AdServerTests.Service
             using (var dbContext = new AdvertisingContext())
             {
                 dbContext.Database.Log = Console.Write;
-                var toTest = new DirectoryService(dbContext);
+                var toTest = DirectoryService(dbContext);
 
                 using (var transaction = new TransactionScopeProxy())
                 {
@@ -236,20 +256,23 @@ namespace AdServerTests.Service
         [Ignore("Used only for data loading")]
         public void LoadTestData()
         {
-            var toTest = new DirectoryService();
-
-            using (var transaction = new TransactionScopeProxy())
+            using (var dbContext = new AdvertisingContext())
             {
-                foreach (var newDirectory in rawDirectories)
+                var toTest = DirectoryService(dbContext);
+
+                using (var transaction = new TransactionScopeProxy())
                 {
-                    newDirectory.Advertisements = new List<Advertisement>();
-                    newDirectory.Advertisements.AddRange(CreateTestAdvertisements(newDirectory));
-                    toTest.SaveDirectory(newDirectory);
+                    foreach (var newDirectory in rawDirectories)
+                    {
+                        newDirectory.Advertisements = new List<Advertisement>();
+                        newDirectory.Advertisements.AddRange(CreateTestAdvertisements(newDirectory));
+                        toTest.SaveDirectory(newDirectory);
 
-                    newDirectory.Advertisements.ForEach(x => Assert.AreEqual(newDirectory.Id, x.DirectoryId));
+                        newDirectory.Advertisements.ForEach(x => Assert.AreEqual(newDirectory.Id, x.DirectoryId));
+                    }
+
+                    transaction.Commit();
                 }
-
-                transaction.Commit();
             }
         }
     }

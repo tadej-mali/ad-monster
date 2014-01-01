@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Data.Entity.ModelConfiguration.Conventions;
+using System.Linq;
 using System.Transactions;
 using AdServer.Models;
 
@@ -27,34 +28,47 @@ namespace AdServer.Data
         }
     }
 
-    public static class EntityExtensions
+    public class DbContextProxy<TD> : IDbContext where TD : DbContext
     {
-        public static EntityState GetSavingState(this IEntityWithId target)
+        private readonly TD context;
+
+        public DbContextProxy(TD context)
         {
-            return target.Id == 0 ? EntityState.Added : EntityState.Modified;
+            this.context = context;
         }
 
-        public static EntityState GetTrackingState(this object target, DbContext ctx)
+        public IQueryable<T> GetQuery<T>() where T : class
         {
-            return ctx.Entry(target).State;
+            return this.context.Set<T>();
         }
 
-        public static void EnforceAttach<T>(this DbContext ctx, T target) where T : class
+        public IQueryable<T> GetQuery<T>(QueryPredicate<T> basePredicate) where T : class
         {
-            var state = target.GetTrackingState(ctx);
-            if (state == EntityState.Detached)
-            {
-                ctx.Set<T>().Attach(target);
-            }
+            var baseQuery = this.GetQuery<T>();
+            return basePredicate(baseQuery);
         }
 
-        public static int Fetch<T>(this ICollection<T> target)
+        public void Remove<T>(T entity) where T : class
         {
-            if (target == null) { return 0; }
+            this.context.Set<T>().Remove(entity);
+        }
 
-            return target.Count;
+        public void Attach<T>(T entity) where T : class
+        {
+            this.context.Set<T>().Attach(entity);
+        }
+
+        public void SaveChanges()
+        {
+            this.context.SaveChanges();
+        }
+
+        public DbEntityEntry<T> Entry<T>(T entity) where T : class
+        {
+            return this.context.Entry(entity);
         }
     }
+
 
     public interface ITransactionScope : IDisposable
     {
