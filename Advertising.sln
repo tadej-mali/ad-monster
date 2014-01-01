@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdServer", "AdServer\AdServer.csproj", "{BEDB550E-DBA2-4E0A-8CE6-88A1F132E6A1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdServerTests", "AdServerTests\AdServerTests.csproj", "{2123F1F7-CC5A-4047-B921-6A9E5A3FC8C2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +15,10 @@ Global
 		{BEDB550E-DBA2-4E0A-8CE6-88A1F132E6A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BEDB550E-DBA2-4E0A-8CE6-88A1F132E6A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BEDB550E-DBA2-4E0A-8CE6-88A1F132E6A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2123F1F7-CC5A-4047-B921-6A9E5A3FC8C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2123F1F7-CC5A-4047-B921-6A9E5A3FC8C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2123F1F7-CC5A-4047-B921-6A9E5A3FC8C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2123F1F7-CC5A-4047-B921-6A9E5A3FC8C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

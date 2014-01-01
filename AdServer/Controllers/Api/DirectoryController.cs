@@ -1,12 +1,46 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Web.Http;
+using AdServer.Data;
+using AdServer.Models;
+using AdServer.Service;
 
 namespace AdServer.Controllers.Api
 {
+    static class ModelExtensions
+    {
+        public static DirectoryController.DirectoryDescription ToDescription(this Directory target)
+        {
+            if (target == null) { return null; }
+
+            return new DirectoryController.DirectoryDescription
+            {
+                id = target.Id,
+                title = target.Title,
+                itemsCount = target.ItemsCount,
+                description = target.Description
+            };
+        }
+
+        public static DirectoryController.AdvertisementDescription ToDescription(this Advertisement target)
+        {
+            if (target == null) { return null; }
+
+            return new DirectoryController.AdvertisementDescription
+            {
+                id = target.Id,
+                title = target.Title,
+                description = target.Description,
+                url = target.Url,
+                parentId = target.DirectoryId
+            };
+        }
+    }
+
     public class DirectoryController : ApiController
     {
-        private class DirectoryDescription
+        public class DirectoryDescription
         {
             public int id { get; set; }
             public string title { get; set; }
@@ -26,7 +60,8 @@ namespace AdServer.Controllers.Api
             }
         }
 
-        private class AdvertisementDescription
+
+        public class AdvertisementDescription
         {
             public int parentId { get; set; }
             public int id { get; set; }
@@ -69,7 +104,6 @@ namespace AdServer.Controllers.Api
                     new AdvertisementDescription { parentId = item.id, id = nextId, title = "Title " + nextId, description = "Description of advertisement " + nextId++, url = "http://www.twitter.com"}
                 })
                 .ToArray();
-
         }
 
         private static readonly AdvertisementDescription[] Advertisements = CreateAdvertisements(Directories);
@@ -77,24 +111,43 @@ namespace AdServer.Controllers.Api
         // GET api/directory
         public object Get()
         {
+            /*
             foreach (var description in Directories)
             {
                 description.itemsCount = Advertisements.Count(x => x.parentId == description.id);
             }
-
             return Directories;
+            */
+
+            var dirService = new DirectoryService();
+            var dir = dirService.GetDirectoryList();
+
+            return dir.Select(x => x.ToDescription()).ToArray();
         }
 
         // GET api/directory/5
         public object Get(int id)
         {
+            /*
             var theDirectory = Directories.SingleOrDefault(x => x.id == id);
             if (theDirectory == null) { return null; }
 
             var result = theDirectory.Copy();
             result.advertisements = Advertisements.Where(x => x.parentId == id).ToArray();
+            */
 
-            return result;
+            using (var dbContext = new AdvertisingContext())
+            {
+                dbContext.Database.Log = s => Debug.Write(s);
+                var dirService = new DirectoryService(dbContext);
+                var theDirectory = dirService.GetDirectory(id);
+
+                if (theDirectory == null) { return null; }
+
+                var result = theDirectory.ToDescription();
+                result.advertisements = theDirectory.Advertisements.Select(x => x.ToDescription()).ToArray();
+                return result;
+            }
         }
 
         // POST api/directory
