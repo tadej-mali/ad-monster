@@ -16,7 +16,16 @@ namespace AdServer.Service
         public bool WithCount { get; set; }
     }
 
-    public class DirectoryService
+    public interface IDirectoryService
+    {
+        void SaveDirectory(Directory dir);
+        Directory GetDirectory(int id);
+        Directory GetDirectory(DirectoryQuery q);
+        void DeleteDirectory(Directory dir);
+        IList<Directory> GetDirectoryList();
+    }
+
+    public class DirectoryService : IDirectoryService
     {
         private IDbContext DbContext { get; set; }
 
