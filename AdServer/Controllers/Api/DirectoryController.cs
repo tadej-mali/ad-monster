@@ -110,7 +110,7 @@ namespace AdServer.Controllers.Api
             var result = theDirectory.ToDto();
             result.advertisements = theDirectory.Advertisements.Select(x => x.ToDto()).ToArray();
 
-            var response = this.Request.CreateResponse(HttpStatusCode.Created, result);
+            var response = this.Request.CreateResponse(HttpStatusCode.OK, result);
             return response;
         }
 
@@ -141,9 +141,6 @@ namespace AdServer.Controllers.Api
         // PUT api/directory/5
         public HttpResponseMessage Put(int id, [FromBody]DirectoryDto value)
         {
-            var ctx = IocConfig.Instance.GetInstance<AdvertisingContext>();
-            ctx.Database.Log = s => Debug.Write(s);
-
             if (id != value.id) { return this.Request.CreateResponse(HttpStatusCode.BadRequest); }
 
             var toUpdate = this.dirService.GetDirectory(id);
