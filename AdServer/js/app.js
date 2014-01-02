@@ -46,10 +46,13 @@ directory.Router = Backbone.Router.extend({
     
     directoryContent: function (id) {
         var self = this;
-        var folder = new directory.Folder({id: id});
+        var folder = new directory.Folder({ id: id });
         folder.fetch({
-            success: function(data) {
+            success: function (data) {
                 self.$content.html(new directory.DirectoryDetailsView({ model: data }).render().el);
+            },
+            error : function(model, response, options) {
+                directory.router.navigate("", { trigger: true, replace: true });
             }
         });
     }
