@@ -18,6 +18,7 @@ namespace AdServer.Models
         [NotMapped]
         public int ItemsCount { get; set; }
 
+        [Timestamp]
         public byte[] VersionStamp { get; set; }
     }
 }

@@ -58,6 +58,11 @@ namespace AdServer.Data
             this.context.Set<T>().Attach(entity);
         }
 
+        public void Detach<T>(T entity) where T : class
+        {
+            this.context.Entry(entity).State = EntityState.Detached;
+        }
+
         public void SaveChanges()
         {
             this.context.SaveChanges();

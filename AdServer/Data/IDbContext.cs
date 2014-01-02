@@ -14,6 +14,7 @@ namespace AdServer.Data
         void Remove<T>(T entity) where T : class;
 
         void Attach<T>(T entity) where T : class;
+        void Detach<T>(T entity) where T : class;
 
         void SaveChanges();
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using AdServer.Data;
 using AdServer.Models;
@@ -36,7 +37,15 @@ namespace AdServer.Service
 
         public void SaveDirectory(Directory dir)
         {
-            this.DbContext.Entry(dir).State = dir.GetSavingState();
+            if (dir.Id == 0)
+            {
+                this.DbContext.Entry(dir).State = EntityState.Added;
+            }
+            else
+            {
+                this.DbContext.EnforceAttach(dir);
+            }
+
             this.DbContext.SaveChanges();
         }
 

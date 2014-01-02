@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
+using System.Linq;
 
 namespace AdServer.Data
 {
@@ -43,6 +45,34 @@ namespace AdServer.Data
             if (target == null) { return 0; }
 
             return target.Count;
+        }
+    }
+
+    public static class RowVersionExtensions
+    {
+        public static byte[] ToByte(this long value)
+        {
+            var result = BitConverter.GetBytes(value);
+
+            if (result.Length < 8) { Array.Resize(ref result, 8); }
+            if (BitConverter.IsLittleEndian) { result = result.Reverse().ToArray(); }
+
+            return result;
+        }
+
+        public static long VersionStampAsLong(this IRowVersion source)
+        {
+            var toConvert = source.VersionStamp;
+
+            if (toConvert.Length < 8) { Array.Resize(ref toConvert, 8); }
+            if (BitConverter.IsLittleEndian) { toConvert = toConvert.Reverse().ToArray(); }
+
+            return BitConverter.ToInt64(toConvert, 0);
+        }
+
+        public static bool IsModified(this IRowVersion source, long previous)
+        {
+            return source.VersionStampAsLong() != previous;
         }
     }
 }
